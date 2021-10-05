@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "UserLoader.LoaderWorker": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
