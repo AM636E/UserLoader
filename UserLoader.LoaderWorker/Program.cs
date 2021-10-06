@@ -1,11 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+using Serilog;
+using Serilog.Events;
 
 using System;
+using System.Threading.Tasks;
 
-using UserLoader.Common;
 using UserLoader.Composition;
-using UserLoader.Mq;
 using UserLoader.Mq.RabbitMq;
 using UserLoader.Operations;
 
@@ -13,35 +15,37 @@ namespace UserLoader.LoaderWorker
 {
     class Program
     {
-        public static IServiceProvider BuildServiceProvider()
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureServices((hostContext, services) =>
+                {
+                    var configuration = hostContext.Configuration;
+
+                    Bootstrap.Configure(services, configuration);
+
+                    services.AddRabbitMq(
+                       configuration["RabbitMq:hostname"],
+                       configuration["RabbitMq:senderQueue"],
+                       configuration["RabbitMq:receiverQueue"]
+                    );
+
+                    services.AddTransient<IUserWriter, UserOperations>();
+                    services.AddHostedService<UserLoader>();
+                });
+
+        static async Task Main(string[] args)
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-            var services = new ServiceCollection();
-            Bootstrap.Configure(services, configuration);
+            Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+               .Enrich.FromLogContext()
+               .WriteTo.Console()
+               .CreateLogger();
 
-            services.AddRabbitMq(
-               configuration["RabbitMq:hostname"],
-               configuration["RabbitMq:senderQueue"],
-               configuration["RabbitMq:receiverQueue"]
-            );
+            using var host = CreateHostBuilder(args).UseSerilog().Build();
+            await host.StartAsync();
 
-            services.AddTransient<IUserWriter, UserOperations>();
-
-            return services.BuildServiceProvider();
-        }
-
-        static void Main(string[] args)
-        {
-            var serviceProvider = BuildServiceProvider();
-            var mqWorker = serviceProvider.GetService<IMqWorker>();
-            var userWriter = serviceProvider.GetService<IUserWriter>();
-            var serializer = serviceProvider.GetService<ISerializer>();
-
-            var userLoader = new UserLoader(mqWorker, userWriter, serializer);
-
-            userLoader.Start();
-
-            Console.ReadKey();
+            Console.ReadLine();
         }
     }
 }

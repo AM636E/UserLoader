@@ -3,8 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 
+using System;
+
 using UserLoader.Common;
 using UserLoader.DbModel;
+using UserLoader.DbModel.Models;
 
 namespace UserLoader.Composition
 {
@@ -20,7 +23,13 @@ namespace UserLoader.Composition
                 return client.GetDatabase(configuration["DatabaseSettings:DatabaseName"]);
             });
 
-            container.AddAutoMapper(typeof(UserEntity));
+            container.AddAutoMapper(configuration =>
+            {
+                configuration.CreateMap<UserEntity, UserModel>();
+                configuration.CreateMap<UserModel, UserEntity>();
+                configuration.CreateMap<DateTime, DateTimeOffset>().ConvertUsing(dateTime => new DateTimeOffset(dateTime, TimeSpan.Zero));
+                configuration.CreateMap<DateTimeOffset, DateTime>().ConvertUsing(offset => offset.DateTime);
+            });
 
             container.AddSingleton<ISerializer, JsonSerializer>();
 

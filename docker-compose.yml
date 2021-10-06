@@ -6,7 +6,7 @@ services:
     image: mongo
     restart: always
     ports: 
-        - 5432:5432
+        - 27017:27017
     environment:
         MONGO_INITDB_ROOT_USERNAME: root
         MONGO_INITDB_ROOT_PASSWORD: alohomora
@@ -24,7 +24,7 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://root:alohomora@mongo:27017/
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3-management
     container_name: 'rabbitmq'
     ports:
         - 5672:5672
