@@ -2,6 +2,7 @@
 
 namespace UserLoader.DbModel.Models
 {
+    [Serializable]
     public class UserModel
     {
         public string Id { get; set; }

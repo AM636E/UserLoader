@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 
+using UserLoader.Common;
 using UserLoader.DbModel;
 
 namespace UserLoader.Composition
@@ -20,6 +21,8 @@ namespace UserLoader.Composition
             });
 
             container.AddAutoMapper(typeof(UserEntity));
+
+            container.AddSingleton<ISerializer, JsonSerializer>();
 
             container.AddTransient<IUnitOfWork, UnitOfWork>();
         }

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using MongoDB.Bson;
 using MongoDB.Driver;
+
+using UserLoader.DbModel.Entities;
 
 namespace UserLoader.DbModel
 {

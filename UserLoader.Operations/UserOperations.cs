@@ -10,15 +10,13 @@ using UserLoader.DbModel.Models;
 
 namespace UserLoader.Operations
 {
-    public class UserOperations : IUserOperations
+    public class UserOperations : IUserReader, IUserWriter
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IRepository<UserEntity> _repository;
         private readonly IMapper _mapper;
 
         public UserOperations(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
             _repository = unitOfWork.GetRepository<UserEntity>();
             _mapper = mapper;
         }

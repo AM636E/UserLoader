@@ -10,7 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\UserLoader.Common\UserLoader.Common.csproj" />
     <ProjectReference Include="..\UserLoader.DbModel\UserLoader.DbModel.csproj" />
+    <ProjectReference Include="..\UserLoader.Mq\UserLoader.Mq.csproj" />
   </ItemGroup>
 
 </Project>

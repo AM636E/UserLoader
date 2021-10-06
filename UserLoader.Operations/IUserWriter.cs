@@ -1,15 +1,11 @@
 ﻿using LanguageExt;
 
-using System.Collections.Generic;
-
 using UserLoader.DbModel.Models;
 
 namespace UserLoader.Operations
 {
-    public interface IUserOperations
+    public interface IUserWriter
     {
-        Try<IEnumerable<UserModel>> GetAllUsers();
-
         Try<Unit> Insert(UserModel model);
     }
 }
