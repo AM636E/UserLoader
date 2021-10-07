@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using Serilog;
 
+using System.Collections.Generic;
 using System.Text;
 
 using UserLoader.Composition;
@@ -50,25 +50,19 @@ namespace UserLoader.WebApi
                   };
               });
 
-           services.AddRabbitMq(
-               Configuration["RabbitMq:hostname"],
-               Configuration["RabbitMq:senderQueue"],
-               Configuration["RabbitMq:receiverQueue"]
-           );
+            services.AddRabbitMq(
+                Configuration["RabbitMq:hostname"],
+                Configuration["RabbitMq:senderQueue"],
+                Configuration["RabbitMq:receiverQueue"]
+            );
 
             services.AddTransient<IUserReader, UserOperations>();
             services.AddTransient<IUserWriter, MqUserWriter>();
             services.AddTransient<IAuthenticationTokenProvider, AuthenticationTokenProvider>();
             services.AddTransient<IUserService>(services =>
             {
-                return new UserService(new[]
-                {
-                    new UserAuthenticationModel
-                    {
-                        Name = "ivo",
-                        Password = "bobul"
-                    }
-                }, services.GetRequiredService<IAuthenticationTokenProvider>());
+                var users = GetUsers();
+                return new UserService(users, services.GetRequiredService<IAuthenticationTokenProvider>());
             });
         }
 
@@ -81,7 +75,7 @@ namespace UserLoader.WebApi
             }
 
             app.UseAuthentication();
-            
+
             app.UseRouting();
             app.UseAuthorization();
             app.UseSerilogRequestLogging();
@@ -91,5 +85,7 @@ namespace UserLoader.WebApi
                 endpoints.MapControllers();
             });
         }
+
+        private IEnumerable<UserAuthenticationModel> GetUsers() => Configuration.GetSection("Users").Get<List<UserAuthenticationModel>>();
     }
 }
