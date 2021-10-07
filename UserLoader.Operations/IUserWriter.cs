@@ -6,6 +6,6 @@ namespace UserLoader.Operations
 {
     public interface IUserWriter
     {
-        Try<Unit> Insert(UserModel model);
+        Try<UserModel> Insert(UserModel model);
     }
 }

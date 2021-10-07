@@ -22,6 +22,13 @@ namespace UserLoader.Operations
         }
         public Try<IEnumerable<UserModel>> GetAllUsers() => _repository.All.Map(entities => entities.Select(_mapper.Map<UserModel>));
 
-        public Try<Unit> Insert(UserModel model) => _repository.Insert(_mapper.Map<UserEntity>(model));
+        public Try<UserModel> Insert(UserModel model)
+        {
+            var mapped = _mapper.Map<UserEntity>(model);
+            mapped.CreatedDate = System.DateTime.UtcNow.Date;
+            model.CreatedDate = new System.DateTimeOffset(mapped.CreatedDate, System.TimeSpan.Zero);
+
+            return _repository.Insert(mapped).Map(_ => model);
+        }
     }
 }

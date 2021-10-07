@@ -31,7 +31,15 @@ namespace UserLoader.Mq.RabbitMq
             _connection = Connection;
         }
 
-        public void SendMessage(string message) => _producer.SendMessage(message);
+        public void SendMessage(string message) 
+        {
+            if(string.IsNullOrEmpty(_producerQueue))
+            {
+                throw new InvalidOperationException($"Producer queue is empty. Please, add it in configuration.");
+            }
+
+            _producer.SendMessage(message);
+        }
 
         private IConnection Connection =>
             Helpers.DoubleCheckLock(_lock, () => _connection == null || !_connection.IsOpen,
@@ -39,6 +47,8 @@ namespace UserLoader.Mq.RabbitMq
 
         private IConnection ProduceConnection()
         {
+            _logger.LogInformation($"(Re)Creating Connection. Consumer: {_consumerQueue}. Producer: {_producerQueue}");
+
             if (_connection != null)
             {
                 _connection.Dispose();
@@ -53,10 +63,17 @@ namespace UserLoader.Mq.RabbitMq
             _connection = _connectionFactory.CreateConnection();
             _connection.ConnectionShutdown += _connection_ConnectionShutdown;
 
-            _producer = new Producer(Connection, _producerQueue, _exchange, _loggerFactory.CreateLogger<Producer>());
-            _consumer = new Consumer(Connection, _consumerQueue, _exchange, _loggerFactory.CreateLogger<Consumer>());
-            _consumer.OnMessage += _consumer_OnMessage;
-            _consumer.Start();
+            if (!string.IsNullOrEmpty(_producerQueue))
+            {
+                _producer = new Producer(Connection, _producerQueue, _exchange, _loggerFactory.CreateLogger<Producer>());
+            }
+
+            if (!string.IsNullOrEmpty(_consumerQueue))
+            {
+                _consumer = new Consumer(Connection, _consumerQueue, _exchange, _loggerFactory.CreateLogger<Consumer>());
+                _consumer.OnMessage += _consumer_OnMessage;
+                _consumer.Start();
+            }
 
             return _connection;
         }

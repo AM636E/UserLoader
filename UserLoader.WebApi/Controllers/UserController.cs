@@ -33,7 +33,7 @@ namespace UserLoader.WebApi.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] UserModel value)
         {
-            return _writer.Insert(value).Match(m => Ok(value), ex => StatusCode(500, ex));
+            return _writer.Insert(value).Match(Ok, ex => StatusCode(500, ex));
         }
     }
 }

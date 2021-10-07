@@ -17,11 +17,11 @@ namespace UserLoader.Operations
             _serializer = serializer;
         }
 
-        public Try<Unit> Insert(UserModel model) => () =>
+        public Try<UserModel> Insert(UserModel model) => () =>
         {
             _mqWorker.SendMessage(_serializer.Serialize(model));
 
-            return Unit.Default;
+            return model;
         };
     }
 }
